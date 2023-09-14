@@ -74,7 +74,7 @@
       <HintPath>..\Dlls\Interop.WirelessStudioOle.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.VisualBasic.Compatibility">
-      <Name>Microsoft.VisualBasic.Compatibility</Name>
+      <HintPath>..\Dlls\Microsoft.VisualBasic.Compatibility.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <Name>System</Name>
