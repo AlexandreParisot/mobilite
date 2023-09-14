@@ -182,7 +182,7 @@ Module modEcranABC_API
             sParam = CHR_sAjoutEspace("LstBalID", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15) &
-                     CHR_sAjoutEspace("", 10) &
+                     CHR_sAjoutEspace("MS_OK", 10) &
                      CHR_sAjoutEspace("", 20) &
                      CHR_sAjoutEspace("", 35) &
                      CHR_sAjoutEspace("2", 1) &
