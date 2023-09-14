@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2003
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "GstPro", "GstPro.vbproj", "{284760D1-438B-450A-A3B6-06CBB66576F4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{284760D1-438B-450A-A3B6-06CBB66576F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{284760D1-438B-450A-A3B6-06CBB66576F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{284760D1-438B-450A-A3B6-06CBB66576F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{284760D1-438B-450A-A3B6-06CBB66576F4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {73B1728D-E2EE-48B5-94B7-96A2130AAF6A}
+	EndGlobalSection
+EndGlobal
