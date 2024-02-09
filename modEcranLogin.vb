@@ -29,7 +29,7 @@ Module modEcranLogin
                             ELG_AffichageTitreLogin(sScan)
 
                             'Demande de saisie
-                            sScan = go_IO.RFInput("", 12, CHR_nCentrer(12), 6, gCST_sFICHIER_CODE_BARRE, WirelessStudioOle.RFIOConstants.WLNORMALKEYS, WirelessStudioOle.RFIOConstants.WLMAXLENGTH + WirelessStudioOle.RFIOConstants.WLNO_RETURN_FILL + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+                            sScan = go_IO.RFInput("", 14, CHR_nCentrer(14), 6, gCST_sFICHIER_CODE_BARRE, WirelessStudioOle.RFIOConstants.WLNORMALKEYS, WirelessStudioOle.RFIOConstants.WLMAXLENGTH + WirelessStudioOle.RFIOConstants.WLNO_RETURN_FILL + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
                             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
                             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
