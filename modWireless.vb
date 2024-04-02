@@ -247,10 +247,10 @@ Erreur:
 	'Fonction qui affiche sur la dernière ligne de l'écran le message
 	'Traitement en cours..." & vsParam
 	Public Sub WRL_AfficheTraitementEnCours(Optional ByRef vsParam As String = "")
-		
+
 		go_IO.RFPrint(0, go_TRM.TerminalHeight - 1, "Trt ..." & vsParam, WirelessStudioOle.RFIOConstants.WLNORMAL)
 		go_IO.RFFlushoutput()
-		
+
 	End Sub
 	
 	Private Function WRL_InitialisationDesBoutons() As Object

@@ -35,7 +35,9 @@ Module modEcranLogin
                                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
 
                                     .sMotDePasse = Trim(sScan)
+
                                     If bELG_VerifieUtilisateur() Then
+
                                         bELG_SaisieLogin = True
                                     Else
                                         MSG_AfficheErreur(giERR_LOGIN_USER)
@@ -63,32 +65,41 @@ Module modEcranLogin
         Dim sResultat As String = ""
         Dim nIndex As Short
 
-        With gTab_Configuration
-            For nIndex = 1 To UBound(.sProfil)
-                If .sProfil(nIndex).sUtilisateur = .sUtilisateur Then
+        Try
 
-                    If API_bConnexionAPI("GENERAL") Then
-                        'Construction de la fonction et de ses paramètres pour l'appel API
-                        sParam = CHR_sAjoutEspace("GetUserInfo", 15)
+            With gTab_Configuration
+                For nIndex = 1 To UBound(.sProfil)
+                    If .sProfil(nIndex).sUtilisateur = .sUtilisateur Then
 
-                        If API_bTraitementAPI(sParam, sResultat) Then
-                            If Mid(sResultat, 1, 3) <> "NOK" Then
-                                ' Récupération du dépôt de l'utilisateur (MNS150)
-                                If (Mid(sResultat, 35, 3) <> "") Then
-                                    .sDepot = Mid(sResultat, 35, 3)
+                        If API_bConnexionAPI("GENERAL") Then
+                            'Construction de la fonction et de ses paramètres pour l'appel API
+                            sParam = CHR_sAjoutEspace("GetUserInfo", 15)
+
+                            If API_bTraitementAPI(sParam, sResultat) Then
+                                If Mid(sResultat, 1, 3) <> "NOK" Then
+                                    ' Récupération du dépôt de l'utilisateur (MNS150)
+                                    If (Mid(sResultat, 35, 3) <> "") Then
+                                        .sDepot = Mid(sResultat, 35, 3)
+                                    End If
+                                    bELG_VerifieUtilisateur = True
+                                Else
+                                    bELG_VerifieUtilisateur = False
+                                    MSG_AfficheErreur(giERR_PROCEDURE_API, sResultat)
                                 End If
-                                bELG_VerifieUtilisateur = True
-                            Else
-                                bELG_VerifieUtilisateur = False
-                                MSG_AfficheErreur(giERR_PROCEDURE_API, sResultat)
                             End If
                         End If
-                    End If
 
-                    Exit For
-                End If
-            Next
-        End With
+                        Exit For
+                    End If
+                Next
+            End With
+
+        Catch ex2 As TypeInitializationException
+            LDF_AfficheErreurDansLog("2", "0", ex2.InnerException.ToString)
+        Catch ex As Exception
+            LDF_AfficheErreurDansLog("1", "0", ex.ToString)
+        End Try
+
 
     End Function
 

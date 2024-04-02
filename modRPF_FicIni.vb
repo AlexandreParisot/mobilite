@@ -172,23 +172,23 @@ Erreur:
 		Dim sFicMenuIni As String
 		
 		sFicMenuIni = My.Application.Info.DirectoryPath & "\" & gCST_sFICHIER_MENU_INI
-		
-		With gTab_Menu
-			
-			ReDim Preserve .Tab_Menu(0)
-			
-			'Initialisation de la liste des menus possibles
-			For nNumMenu = 1 To 100
-				sMenu = sINI_GetChaineFichierIni(gCST_INI_SEC_MENU, "OPT_" & nNumMenu, sFicMenuIni)
-				If sMenu <> "" Then
-					.nNombreMenu = .nNombreMenu + 1
-					ReDim Preserve .Tab_Menu(.nNombreMenu)
+
+        With gTab_Menu
+
+            ReDim Preserve .Tab_Menu(0)
+
+            'Initialisation de la liste des menus possibles
+            For nNumMenu = 1 To 100
+                sMenu = sINI_GetChaineFichierIni(gCST_INI_SEC_MENU, "OPT_" & nNumMenu, sFicMenuIni)
+                If sMenu <> "" Then
+                    .nNombreMenu = .nNombreMenu + 1
+                    ReDim Preserve .Tab_Menu(.nNombreMenu)
                     .Tab_Menu(.nNombreMenu) = sMenu
                 End If
-			Next 
-		End With
-		
-		bINI_Init_Menu = True
+            Next
+        End With
+
+        bINI_Init_Menu = True
 		Exit Function
 Erreur: 
 		MSG_AfficheErreur(giERR_INITIALISATION_LISTE_MENU, "Erreur pendant initialisation de la liste des menus : " & Err.Number & "=>", Err.Description)

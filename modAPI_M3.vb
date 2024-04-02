@@ -22,37 +22,45 @@ Module modAPI_M3
         Dim sErreur As String = ""
         Dim rc As Integer = 0
 
-        'Affichage sur PDT
-        WRL_AfficheTraitementEnCours(vsCodeAPI)
+        Try
+            'Affichage sur PDT
+            LDF_AfficheErreurDansLog("1", "0", "2")
+            WRL_AfficheTraitementEnCours(vsCodeAPI)
+            LDF_AfficheErreurDansLog("1", "0", "3")
+            With gTab_Configuration
+                sAPI = sAPI & vsCodeAPI
 
-        With gTab_Configuration
-            sAPI = sAPI & vsCodeAPI
+                'Fermeture du socket
+                LDF_LogPourTrace("Fermeture socket API...")
 
-            'Fermeture du socket
-            LDF_LogPourTrace("Fermeture socket API...")
-
-            Sock.MvxSockClose()
-
-            Sleep(.lTimeWait)
-
-            LDF_LogPourTrace("Connexion socket à " & vsCodeAPI)
-
-            rc = Sock.MvxSockConnect(.sIP, CShort(.sPort), .sDomaine + "\" + .sUtilisateur, .sMotDePasse, sAPI, "")
-
-            LDF_LogPourTrace("Etat connexion à " & vsCodeAPI & " : " & rc)
-
-            'Attente
-            Sleep(.lTimeWait)
-
-            If rc <> 0 Then
-                Sock.MvxSockGetLastError(sErreur)
-                MSG_AfficheErreur(giERR_INIT_PROCEDURE_API, CHR_sSupAccent(sErreur))
                 Sock.MvxSockClose()
-            Else
-                API_bConnexionAPI = True
-            End If
 
-        End With
+                Sleep(.lTimeWait)
+
+                LDF_LogPourTrace("Connexion socket à " & vsCodeAPI)
+
+                rc = Sock.MvxSockConnect(.sIP, CShort(.sPort), .sDomaine + "\" + .sUtilisateur, .sMotDePasse, sAPI, "")
+
+                LDF_LogPourTrace("Etat connexion à " & vsCodeAPI & " : " & rc)
+
+                'Attente
+                Sleep(.lTimeWait)
+
+                If rc <> 0 Then
+                    Sock.MvxSockGetLastError(sErreur)
+                    MSG_AfficheErreur(giERR_INIT_PROCEDURE_API, CHR_sSupAccent(sErreur))
+                    Sock.MvxSockClose()
+                Else
+                    API_bConnexionAPI = True
+                End If
+
+            End With
+
+        Catch ex As Exception
+            LDF_AfficheErreurDansLog("1", "0", ex.ToString)
+        End Try
+
+
     End Function
 
     'Fonction de traitement de la fonction API et retourne True si le traitement a abouti
