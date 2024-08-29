@@ -5,7 +5,7 @@ Module modEcranABC_API
     'Recherche de l'emplacement
     'API=MMS010MI
     'Fonction=GetLocation
-    Public Function API_ABC_bRechercheEmplacement(ByVal vsEmplacement As String, Optional ByRef vsTypeEmplacement As String = "") As Boolean
+    Public Function API_ABC_bRechercheEmplacement(ByVal vsDepot As String, ByVal vsEmplacement As String, Optional ByRef vsTypeEmplacement As String = "") As Boolean
 
         Dim sParam As String = ""
         Dim sResultat As String = ""
@@ -18,7 +18,7 @@ Module modEcranABC_API
             'Construction de la fonction et de ses paramètAPI pour l'appel API
             sParam = CHR_sAjoutEspace("GetLocation", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sSociete, 3) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsEmplacement, 10)
 
             If API_bTraitementAPI(sParam, sResultat) Then
@@ -72,7 +72,7 @@ Module modEcranABC_API
     'Recherche de l'id de stock Article/lot
     'API=MMS060MI
     'Fonction=LstLot
-    Public Function API_ABC_bControleQuantiteArticleLot(ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String, Optional ByVal vsEmplacement As String = "",
+    Public Function API_ABC_bControleQuantiteArticleLot(ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String, Optional ByVal vsDepot As String = "", Optional ByVal vsEmplacement As String = "",
                                                         Optional ByRef vsStatutIDStock As String = "", Optional ByRef vsQuantiteAffectee As String = "", Optional ByRef vsDatePeremption As String = "") As Boolean
 
         Dim sParam As String = ""
@@ -97,7 +97,7 @@ Module modEcranABC_API
 
             'Construction de la fonction et de ses paramètAPI pour l'appel API
             sParam = CHR_sAjoutEspace("LstLot", 15) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsLot, 20) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsEmplacement, 10)
@@ -165,7 +165,7 @@ Module modEcranABC_API
     'Recherche des id de stock Article/lot pour contrôle de la date de péremtion
     'API=MMS060MI
     'Fonction=LstBalID
-    Public Function API_ABC_bControleDateLot(ByVal vsArticle As String, ByVal vsLot As String, ByVal vsStatutIDStock As String, ByVal vsDatePeremption As String) As Boolean
+    Public Function API_ABC_bControleDateLot(ByVal vsDepot As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsStatutIDStock As String, ByVal vsDatePeremption As String) As Boolean
 
         Dim sParam As String = ""
         Dim sResultat As String = ""
@@ -180,7 +180,7 @@ Module modEcranABC_API
 
             'Construction de la fonction et de ses paramètAPI pour l'appel API
             sParam = CHR_sAjoutEspace("LstBalID", 15) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace("MS_OK", 10) &
                      CHR_sAjoutEspace("", 20) &
@@ -205,7 +205,7 @@ Module modEcranABC_API
                     End While
 
                     If (sTemp_DatePeremption <> "") Then
-                        ABC_AffichageLotPlusAncien(sTemp_Emplacement, sTemp_Lot)
+                        ABC_AffichageLotPlusAncien(vsDepot, sTemp_Emplacement, sTemp_Lot)
                         API_ABC_bControleDateLot = True
                     Else
                         API_ABC_bControleDateLot = True
@@ -224,7 +224,7 @@ Module modEcranABC_API
     'Cette gestion se fait par adAPIse IP du terminal utilisé
     'API=CUSEXTMI
     'Fonction=xxxFieldValue
-    Public Function API_ABC_bGestionQuantiteCumulee(ByVal vsArticle As String, ByVal vsQuantiteDeposee As String, ByRef vsQuantiteDejaAmenee As String) As Boolean
+    Public Function API_ABC_bGestionQuantiteCumulee(ByVal vsDepot As String, ByVal vsArticle As String, ByVal vsQuantiteDeposee As String, ByRef vsQuantiteDejaAmenee As String) As Boolean
 
         Dim sParam As String = ""
         Dim sResultat As String = ""
@@ -238,7 +238,6 @@ Module modEcranABC_API
 
         API_ABC_bGestionQuantiteCumulee = False
         vsQuantiteDejaAmenee = "0"
-
 
         If API_bConnexionAPI("CUSEXTMI") Then
 
@@ -374,7 +373,7 @@ Module modEcranABC_API
     'Reclassification de l'ID de stock
     'API=MMS850MI
     'Fonction=AddReclass
-    Public Function API_ABC_bReclassIdStock(ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
+    Public Function API_ABC_bReclassIdStock(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
                                             ByVal vsNouveauLot As String, ByVal vsStatutIDStock As String) As Boolean
 
         Dim sParam As String = ""
@@ -390,7 +389,7 @@ Module modEcranABC_API
                      CHR_sAjoutEspace("", 42) &
                      CHR_sAjoutEspace("WIRELESS", 17) &
                      CHR_sAjoutEspace("WMS", 6) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsEmplacement, 10) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsLot, 20) &
@@ -419,7 +418,7 @@ Module modEcranABC_API
     'Transfert du stock
     'API=MMS175MI
     'Fonction=Update
-    Public Function API_ABC_bTransfertIdStock(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
+    Public Function API_ABC_bTransfertIdStock(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
                                             ByVal vsEmplacementDeFin As String) As Boolean
 
         Dim sParam As String = ""
@@ -432,7 +431,7 @@ Module modEcranABC_API
             'Construction de la fonction et de ses paramètAPI pour l'appel API
             sParam = CHR_sAjoutEspace("Update", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sSociete, 3) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsEmplacementDeFin, 10) &
                      CHR_sAjoutEspace(vsQuantite, 11, True) &

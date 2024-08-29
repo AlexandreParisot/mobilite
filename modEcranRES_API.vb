@@ -5,7 +5,7 @@ Module modEcranRES_API
     'Recherche de l'emplacement
     'API=MMS010MI
     'Fonction=GetLocation
-    Public Function API_RES_bRechercheEmplacement(ByVal vsEmplacement As String, Optional ByRef vsTypeEmplacement As String = "") As Boolean
+    Public Function API_RES_bRechercheEmplacement(ByVal vsDepot As String, ByVal vsEmplacement As String, Optional ByRef vsTypeEmplacement As String = "") As Boolean
 
         Dim sParam As String = ""
         Dim sResultat As String = ""
@@ -18,7 +18,7 @@ Module modEcranRES_API
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("GetLocation", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sSociete, 3) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsEmplacement, 10)
 
             If API_bTraitementAPI(sParam, sResultat) Then
@@ -37,7 +37,7 @@ Module modEcranRES_API
     'Recherche Recherche des derniers ID de stock entrés sur l'emplacement par utilisateur
     'API=ZZZ002MI
     'Fonction=LstLastIDStock
-    Public Function API_RES_bRechercheDernierIdStockSurEmplacement(ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByRef vsTablo_Article As Object,
+    Public Function API_RES_bRechercheDernierIdStockSurEmplacement(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByRef vsTablo_Article As Object,
                                                                    ByRef vsTablo_Lot As Object, ByRef vsTablo_BRE2 As Object, ByRef vsTablo_Qte As Object) As Boolean
 
         Dim sParam As String = ""
@@ -61,7 +61,7 @@ Module modEcranRES_API
 
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("LstLastIdStock", 15) &
-                         CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                         CHR_sAjoutEspace(vsDepot, 3) &
                          CHR_sAjoutEspace(vsEmplacement, 10) &
                          CHR_sAjoutEspace(gTab_Configuration.sUtilisateur, 10) &
                          CHR_sAjoutEspace("", 8) &
@@ -116,7 +116,7 @@ Module modEcranRES_API
     'Recherche de l'id de stock Article/lot
     'API=MMS060MI
     'Fonction=LstLot
-    Public Function API_RES_bControleQuantiteArticleLot(ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String, Optional ByVal vsEmplacement As String = "",
+    Public Function API_RES_bControleQuantiteArticleLot(ByVal vsDepot As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String, Optional ByVal vsEmplacement As String = "",
                                                         Optional ByRef vsStatutIDStock As String = "", Optional ByRef vsReferenceLot2 As String = "") As Boolean
 
         Dim sParam As String = ""
@@ -140,7 +140,7 @@ Module modEcranRES_API
 
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("LstLot", 15) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsLot, 20) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsEmplacement, 10)
@@ -209,7 +209,7 @@ Module modEcranRES_API
     'Recherche de l'article/dépôt
     'API=MMS200MI
     'Fonction=GetItmWhsBasic
-    Public Function API_RES_bRechercheArticleDepot(ByVal vsArticle As String, ByRef vsEmplacementArticleDepot As String) As Boolean
+    Public Function API_RES_bRechercheArticleDepot(ByVal vsDepot As String, ByVal vsArticle As String, ByRef vsEmplacementArticleDepot As String) As Boolean
 
 
         Dim sParam As String = ""
@@ -222,7 +222,7 @@ Module modEcranRES_API
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("GetItmWhsBasic", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sSociete, 3) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15)
 
             If API_bTraitementAPI(sParam, sResultat) Then
@@ -241,7 +241,7 @@ Module modEcranRES_API
     'Reclassification de l'ID de stock
     'API=MMS850MI
     'Fonction=AddReclass
-    Public Function API_RES_bReclassIdStock(ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
+    Public Function API_RES_bReclassIdStock(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
                                             ByVal vsNouveauLot As String, ByVal vsStatutIDStock As String) As Boolean
 
         Dim sParam As String = ""
@@ -257,7 +257,7 @@ Module modEcranRES_API
                      CHR_sAjoutEspace("", 42) &
                      CHR_sAjoutEspace("WIRELESS", 17) &
                      CHR_sAjoutEspace("WMS", 6) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsEmplacement, 10) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsLot, 20) &
@@ -286,7 +286,7 @@ Module modEcranRES_API
     'Transfert du stock
     'API=MMS175MI
     'Fonction=Update
-    Public Function API_RES_bTransfertIdStock(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
+    Public Function API_RES_bTransfertIdStock(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String,
                                             ByVal vsEmplacementDeFin As String) As Boolean
 
         Dim sParam As String = ""
@@ -299,7 +299,7 @@ Module modEcranRES_API
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("Update", 15) &
                      CHR_sAjoutEspace(gTab_Configuration.sSociete, 3) &
-                     CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                     CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsEmplacementDeFin, 10) &
                      CHR_sAjoutEspace(vsQuantite, 11, True) &
@@ -321,7 +321,7 @@ Module modEcranRES_API
     'Edition de l'étiquette palette
     'API=MMS060MI
     'Fonction=PrtPutAwayLbl
-    Public Function API_RES_bEditionEtiquettePalette(ByVal vsEmplacement As String, ByVal vsNumOrdre As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String) As Boolean
+    Public Function API_RES_bEditionEtiquettePalette(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsNumOrdre As String, ByVal vsArticle As String, ByVal vsLot As String, ByVal vsQuantite As String) As Boolean
 
         Dim sParam As String = ""
         Dim sResultat As String = ""
@@ -332,7 +332,7 @@ Module modEcranRES_API
 
             'Construction de la fonction et de ses paramètres pour l'appel API
             sParam = CHR_sAjoutEspace("PrtPutAwayLbl", 15) &
-                CHR_sAjoutEspace(gTab_Configuration.sDepot, 3) &
+                CHR_sAjoutEspace(vsDepot, 3) &
                      CHR_sAjoutEspace(vsArticle, 15) &
                      CHR_sAjoutEspace(vsEmplacement, 10) &
                      CHR_sAjoutEspace(vsLot, 20) &

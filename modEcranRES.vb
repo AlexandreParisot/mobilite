@@ -21,55 +21,59 @@ Module modEcranRES
         Dim sStatutIDStock As String = ""
         Dim sReferenceLot2 As String = ""
         Dim sEmplacementArticleDepot As String = ""
-
+        Dim sDepot As String = ""
+        Dim sDepotLibelle As String = ""
 
         msTitre = vsTitre
 
+        If RES_bSaisieDepot(sDepot, sDepotLibelle) Then
 
-        While Not bFinSaisie
+            While Not bFinSaisie
 
-            RES_bSaisieEmplacementDeDebut(sEmplacementDeDebut, sTypeEmplacementDeDebut, bFinSaisie)
+                RES_bSaisieEmplacementDeDebut(sDepot, sEmplacementDeDebut, sTypeEmplacementDeDebut, bFinSaisie)
 
-            If (Not bFinSaisie) Then
+                If (Not bFinSaisie) Then
 
-                If (RES_bRechercheDernierArticleSurEmplacementDeDebut(sEmplacementDeDebut, sArticle, sArticleLibelle, sArticleType, bFinSaisie)) Then
+                    If (RES_bRechercheDernierArticleSurEmplacementDeDebut(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sArticleType, bFinSaisie)) Then
 
-                    If (RES_bRechercheDernierLotSurEmplacementDeDebut(sTypeEmplacementDeDebut, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sReferenceLot2, sQuantite, sStatutIDStock, bFinSaisie)) Then
+                        If (RES_bRechercheDernierLotSurEmplacementDeDebut(sDepot, sTypeEmplacementDeDebut, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sReferenceLot2, sQuantite, sStatutIDStock, bFinSaisie)) Then
 
-                        If (RES_bSaisieQuantiteIDStockSurEmplacementDeDebut(sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sReferenceLot2, sQuantite, sStatutIDStock, bFinSaisie)) Then
+                            If (RES_bSaisieQuantiteIDStockSurEmplacementDeDebut(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sReferenceLot2, sQuantite, sStatutIDStock, bFinSaisie)) Then
 
-                            API_RES_bRechercheArticleDepot(sArticle, sEmplacementArticleDepot)
+                                API_RES_bRechercheArticleDepot(sDepot, sArticle, sEmplacementArticleDepot)
 
-                            If (sArticleType.StartsWith("TB")) Then
-                                sEmplacementFinalParDefaut = gTab_Configuration.sRES_WHSL_TB_Final
-                            Else
-                                sEmplacementFinalParDefaut = sEmplacementArticleDepot
-                            End If
-
-                            If (RES_bSaisieEmplacementDeFin(sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sQuantite, sEmplacementFinalParDefaut, sReferenceLot2, sEmplacementDeFin, bFinSaisie)) Then
-
-                                API_bRecupDateHeure(sDateCourante, sHeureCourante)
-
-                                If (sTypeEmplacementDeDebut = gTab_Configuration.sSLPT_Bord_De_Chaine_Normal) Then
-
-                                    If (sReferenceLot2 <> "") Then
-                                        sNouveauLot = sReferenceLot2
-                                        API_RES_bReclassIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
-                                        sLot = sNouveauLot
-                                    End If
-
-                                ElseIf (sTypeEmplacementDeDebut = gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
-
-                                    If (sReferenceLot2 <> "") Then
-                                        sNouveauLot = sReferenceLot2
-                                        API_RES_bReclassIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
-                                        sLot = sNouveauLot
-                                    End If
-
+                                If (sArticleType.StartsWith("TB")) Then
+                                    sEmplacementFinalParDefaut = gTab_Configuration.sRES_WHSL_TB_Final
+                                Else
+                                    sEmplacementFinalParDefaut = sEmplacementArticleDepot
                                 End If
 
-                                If (API_RES_bTransfertIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sEmplacementDeFin)) Then
-                                    API_RES_bEditionEtiquettePalette(sEmplacementDeFin, "", sArticle, sLot, sQuantite)
+                                If (RES_bSaisieEmplacementDeFin(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sQuantite, sEmplacementFinalParDefaut, sReferenceLot2, sEmplacementDeFin, bFinSaisie)) Then
+
+                                    API_bRecupDateHeure(sDateCourante, sHeureCourante)
+
+                                    If (sTypeEmplacementDeDebut = gTab_Configuration.sSLPT_Bord_De_Chaine_Normal) Then
+
+                                        If (sReferenceLot2 <> "") Then
+                                            sNouveauLot = sReferenceLot2
+                                            API_RES_bReclassIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
+                                            sLot = sNouveauLot
+                                        End If
+
+                                    ElseIf (sTypeEmplacementDeDebut = gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
+
+                                        If (sReferenceLot2 <> "") Then
+                                            sNouveauLot = sReferenceLot2
+                                            API_RES_bReclassIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
+                                            sLot = sNouveauLot
+                                        End If
+
+                                    End If
+
+                                    If (API_RES_bTransfertIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sEmplacementDeFin)) Then
+                                        API_RES_bEditionEtiquettePalette(sDepot, sEmplacementDeFin, "", sArticle, sLot, sQuantite)
+                                    End If
+
                                 End If
 
                             End If
@@ -80,14 +84,14 @@ Module modEcranRES
 
                 End If
 
-            End If
+            End While
 
-        End While
+        End If
 
     End Sub
 
     'Saisie de l'emplacement de début
-    Private Function RES_bSaisieEmplacementDeDebut(ByRef vsEmplacementDeDebut As String, ByRef vsTypeEmplacementDeDebut As String, ByRef vbFinSaisie As Boolean) As Boolean
+    Private Function RES_bSaisieEmplacementDeDebut(ByVal vsDepot As String, ByRef vsEmplacementDeDebut As String, ByRef vsTypeEmplacementDeDebut As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
         Dim iRes As Integer = 0
@@ -98,10 +102,10 @@ Module modEcranRES
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bSaisieEmplacementDeDebut And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            RES_AffichageSaisieEMPLACEMENTdeDEBUT()
+            RES_AffichageSaisieEMPLACEMENTdeDEBUT(vsDepot)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 3, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_IMPRIME_DERNIERE_ETIQUETTE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 5, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_IMPRIME_DERNIERE_ETIQUETTE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -114,7 +118,7 @@ Module modEcranRES
                         Else
 
                             vsEmplacementDeDebut = Trim(sScan)
-                            If (API_RES_bRechercheEmplacement(vsEmplacementDeDebut, vsTypeEmplacementDeDebut)) Then
+                            If (API_RES_bRechercheEmplacement(vsDepot, vsEmplacementDeDebut, vsTypeEmplacementDeDebut)) Then
                                 If (vsTypeEmplacementDeDebut <> gTab_Configuration.sSLPT_Bord_De_Chaine_Normal And vsTypeEmplacementDeDebut <> gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
                                     MSG_AfficheErreur(giERR_TYPE_EMPLACEMENT_INVALIDE)
                                 Else
@@ -138,7 +142,7 @@ Module modEcranRES
     End Function
 
     'Recherche des derniers articles déposés sur l'emplacement de début 
-    Private Function RES_bRechercheDernierArticleSurEmplacementDeDebut(ByVal vsEmplacementDeDebut As String, ByRef vsArticle As String, ByRef vsArticleLibelle As String, ByRef vsArticleType As String,
+    Private Function RES_bRechercheDernierArticleSurEmplacementDeDebut(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByRef vsArticle As String, ByRef vsArticleLibelle As String, ByRef vsArticleType As String,
                                                                        ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
@@ -157,7 +161,7 @@ Module modEcranRES
         vsArticleType = ""
 
 
-        API_RES_bRechercheDernierIdStockSurEmplacement(vsEmplacementDeDebut, vsArticle, "", sTablo_Article, sTablo_Lot, sTablo_BRE2, sTablo_Qte)
+        API_RES_bRechercheDernierIdStockSurEmplacement(vsDepot, vsEmplacementDeDebut, vsArticle, "", sTablo_Article, sTablo_Lot, sTablo_BRE2, sTablo_Qte)
 
         'Si on a pas trouvé d'article sur l'emplacement on quitte le scénario
         If (sTablo_Article.Length > 0) Then
@@ -172,10 +176,10 @@ Module modEcranRES
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bRechercheDernierArticleSurEmplacementDeDebut And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            RES_AffichageArticleIDStock(vsEmplacementDeDebut, sTablo_Article)
+            RES_AffichageArticleIDStock(vsDepot, vsEmplacementDeDebut, sTablo_Article)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 1, CHR_nCentrer(1), 9, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 1, CHR_nCentrer(1), 11, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -205,7 +209,7 @@ Module modEcranRES
     End Function
 
     'Recherche des derniers lot de article déposés sur l'emplacement de début 
-    Private Function RES_bRechercheDernierLotSurEmplacementDeDebut(ByVal vsTypeEmplacementDeDebut As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByRef vsLot As String,
+    Private Function RES_bRechercheDernierLotSurEmplacementDeDebut(ByVal vsDepot As String, ByVal vsTypeEmplacementDeDebut As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByRef vsLot As String,
                                                                    ByRef vsReferenceLot2 As String, ByRef vsQuantite As String, ByRef vsStatutIDStock As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
@@ -232,7 +236,7 @@ Module modEcranRES
 
         ' Si on est sur un emplacement bord de chaîne "normal", on recherche les derniers lots déposés sur cet emplacement
 
-        API_RES_bRechercheDernierIdStockSurEmplacement(vsEmplacementDeDebut, vsArticle, vsLot, sTablo_Article, sTablo_Lot, sTablo_BRE2, sTablo_Qte)
+        API_RES_bRechercheDernierIdStockSurEmplacement(vsDepot, vsEmplacementDeDebut, vsArticle, vsLot, sTablo_Article, sTablo_Lot, sTablo_BRE2, sTablo_Qte)
 
         'Si on a pas trouvé d'article sur l'emplacement on quitte le scénario
         If (sTablo_Article.Length > 0) Then
@@ -246,7 +250,7 @@ Module modEcranRES
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bRechercheDernierLotSurEmplacementDeDebut And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            RES_AffichageLotIDStock(vsTypeEmplacementDeDebut, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, sTablo_Lot(nIndex), sTablo_BRE2(nIndex))
+            RES_AffichageLotIDStock(vsDepot, vsTypeEmplacementDeDebut, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, sTablo_Lot(nIndex), sTablo_BRE2(nIndex))
 
             'Demande de saisie
             sScan = go_IO.RFInput(sTablo_Lot(nIndex), 20, CHR_nCentrer(20), 9, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_SUIVANT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
@@ -298,10 +302,10 @@ Module modEcranRES
             While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bRechercheDernierLotSurEmplacementDeDebut And Not gbErreurCommunication And Not vbFinSaisie
 
                 'Affichage
-                RES_AffichageLotASaisir(vsEmplacementDeDebut, vsArticle, vsArticleLibelle)
+                RES_AffichageLotASaisir(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle)
 
                 'Demande de saisie
-                sScan = go_IO.RFInput("", 70, CHR_nCentrer(70), 6, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_SAISIE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+                sScan = go_IO.RFInput("", 70, CHR_nCentrer(70), 7, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_SAISIE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
                 iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
                 If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                     If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -312,9 +316,9 @@ Module modEcranRES
                             If sScan = gCST_TOUCHE_SAISIE_F5 And go_IO.LastInputType = WirelessStudioOle.RFIOConstants.WLCOMMANDTYPE Then
 
                                 'Affichage
-                                RES_AffichageLotASaisir(vsEmplacementDeDebut, vsArticle, vsArticleLibelle)
+                                RES_AffichageLotASaisir(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle)
                                 'Demande de saisie
-                                sScan = go_IO.RFInput("", 20, CHR_nCentrer(20), 6, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+                                sScan = go_IO.RFInput("", 20, CHR_nCentrer(20), 7, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
                                 iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
                                 If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                                     If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -371,7 +375,7 @@ Module modEcranRES
     End Function
 
     'Saisie de la quantité à retourner en stock 
-    Private Function RES_bSaisieQuantiteIDStockSurEmplacementDeDebut(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String,
+    Private Function RES_bSaisieQuantiteIDStockSurEmplacementDeDebut(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String,
                                                                      ByVal vsReferenceLot2 As String, ByRef vsQuantite As String, ByRef vsStatutIDStock As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
@@ -385,10 +389,10 @@ Module modEcranRES
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bSaisieQuantiteIDStockSurEmplacementDeDebut And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            RES_AffichageIDStock(vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsReferenceLot2, vsQuantite)
+            RES_AffichageIDStock(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsReferenceLot2, vsQuantite)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 9, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 10, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -398,7 +402,7 @@ Module modEcranRES
                         If (IsNumeric(CHR_TransformeSeparateurPourNumerique(Trim(sScan)))) Then
                             nQuantiteSaisie = (CHR_TransformeSeparateurPourNumerique(Trim(sScan)))
                             If (nQuantiteSaisie <> 0) Then
-                                If (API_RES_bControleQuantiteArticleLot(vsArticle, vsLot, Trim(sScan), vsEmplacementDeDebut, vsStatutIDStock, vsReferenceLot2)) Then
+                                If (API_RES_bControleQuantiteArticleLot(vsDepot, vsArticle, vsLot, Trim(sScan), vsEmplacementDeDebut, vsStatutIDStock, vsReferenceLot2)) Then
                                     vsQuantite = Trim(sScan)
                                     RES_bSaisieQuantiteIDStockSurEmplacementDeDebut = True
                                 End If
@@ -423,7 +427,7 @@ Module modEcranRES
     End Function
 
     'Saisie de l'emplacement de fin
-    Private Function RES_bSaisieEmplacementDeFin(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantite As String,
+    Private Function RES_bSaisieEmplacementDeFin(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantite As String,
                                                  ByVal vsEmplacementFinalParDefaut As String, ByVal vsReferenceLot2 As String, ByRef vsEmplacementDeFin As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
@@ -435,10 +439,10 @@ Module modEcranRES
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bSaisieEmplacementDeFin And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            RES_AffichageSaisieEMPLACEMENTdeFIN(vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsQuantite, vsReferenceLot2)
+            RES_AffichageSaisieEMPLACEMENTdeFIN(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsQuantite, vsReferenceLot2)
 
             'Demande de saisie
-            sScan = go_IO.RFInput(vsEmplacementFinalParDefaut, 10, CHR_nCentrer(10), 9, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput(vsEmplacementFinalParDefaut, 10, CHR_nCentrer(10), 10, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -447,7 +451,7 @@ Module modEcranRES
                     Else
 
                         vsEmplacementDeFin = Trim(sScan)
-                        If (API_RES_bRechercheEmplacement(vsEmplacementDeFin)) Then
+                        If (API_RES_bRechercheEmplacement(vsDepot, vsEmplacementDeFin)) Then
                             RES_bSaisieEmplacementDeFin = True
                         End If
 
@@ -464,15 +468,16 @@ Module modEcranRES
     End Function
 
     'Affichage du titre pour saisie de l'Emplacement de début
-    Private Sub RES_AffichageSaisieEMPLACEMENTdeDEBUT()
+    Private Sub RES_AffichageSaisieEMPLACEMENTdeDEBUT(ByVal vsDepot As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 2, CHR_sCentrer("EMPLACEMENT DEBUT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, CHR_sCentrer("EMPLACEMENT DEBUT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage des articles trouvés sur les ID de stock de l'emplacement de début
-    Private Sub RES_AffichageArticleIDStock(ByVal vsEmplacementDeDebut As String, ByVal vsTablo_Article As Object)
+    Private Sub RES_AffichageArticleIDStock(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsTablo_Article As Object)
 
         Dim nIndex As Short = 0
         Dim vsArticleLibelle As String = ""
@@ -485,93 +490,145 @@ Module modEcranRES
 
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
 
             For nIndex = 0 To UBound(vsTablo_Article)
 
                 If (nIndex = 0) Then
-                    .RFPrint(0, 2, "1- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 3, "1- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
                 If (nIndex = 1) Then
-                    .RFPrint(0, 3, "2- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 4, "2- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
                 If (nIndex = 2) Then
-                    .RFPrint(0, 4, "3- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 5, "3- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
                 If (nIndex = 3) Then
-                    .RFPrint(0, 5, "4- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 6, "4- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
                 If (nIndex = 4) Then
-                    .RFPrint(0, 6, "5- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 7, "5- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
                 If (nIndex = 5) Then
-                    .RFPrint(0, 7, "6- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
+                    .RFPrint(0, 8, "6- ART.: " & vsTablo_Article(nIndex), WirelessStudioOle.RFIOConstants.WLNORMAL)
                 End If
 
             Next
 
-            .RFPrint(0, 9, "N° ARTICLE", WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 10, "N° ARTICLE", WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage des lots de l'article trouvés sur les ID de stock de l'emplacement de début
-    Private Sub RES_AffichageLotIDStock(ByVal vsTypeEmplacementDeDebut As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsReferenceLot2 As String)
+    Private Sub RES_AffichageLotIDStock(ByVal vsDepot As String, ByVal vsTypeEmplacementDeDebut As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsReferenceLot2 As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
             If (vsTypeEmplacementDeDebut = gTab_Configuration.sSLPT_Bord_De_Chaine_Normal) Then
-                .RFPrint(0, 5, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
+                .RFPrint(0, 6, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
             End If
             .RFPrint(0, 8, CHR_sCentrer("LOT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage de la demande de saisie de lot de l'article trouvé sur les ID de stock de l'emplacement de début
-    Private Sub RES_AffichageLotASaisir(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String)
+    Private Sub RES_AffichageLotASaisir(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, CHR_sCentrer("LOT D'ORIGINE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, CHR_sCentrer("LOT D'ORIGINE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage ID Stock pour saisie de la quantité
-    Private Sub RES_AffichageIDStock(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsReferenceLot2 As String, ByVal vsQuantite As String)
+    Private Sub RES_AffichageIDStock(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsReferenceLot2 As String, ByVal vsQuantite As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 6, "QTE  : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 8, CHR_sCentrer("QUANTITE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 7, "QTE  : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 9, CHR_sCentrer("QUANTITE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage du titre pour saisie de l'Emplacement de fin
-    Private Sub RES_AffichageSaisieEMPLACEMENTdeFIN(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String,
+    Private Sub RES_AffichageSaisieEMPLACEMENTdeFIN(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String,
                                                     ByVal vsQuantite As String, ByVal vsReferenceLot2 As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 6, "QTE  : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 8, CHR_sCentrer("EMPLACEMENT FIN"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL.: " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "LOT  : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, "LOT ORIGINE:" & vsReferenceLot2, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 7, "QTE  : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 9, CHR_sCentrer("EMPLACEMENT FIN"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
+
+    Private Function RES_bSaisieDepot(ByRef vsDepot As String, ByRef vsDepotLibelle As String) As Boolean
+
+        RES_bSaisieDepot = False
+        Dim bFinSaisie As Boolean = False
+        Dim sScan As String = ""
+        Dim iRes As Integer = 0
+
+        While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not RES_bSaisieDepot And Not gbErreurCommunication And Not bFinSaisie
+
+            'Affichage
+            RES_AffichageSaisieDEPOT(vsDepot)
+
+            'Demande de saisie
+            sScan = go_IO.RFInput(gTab_Configuration.sDepot, 3, CHR_nCentrer(3), 4, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
+            If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
+                If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
+                    If sScan = gCST_TOUCHE_QUITTER_F3 And go_IO.LastInputType = WirelessStudioOle.RFIOConstants.WLCOMMANDTYPE Then
+                        bFinSaisie = True
+                    Else
+
+                        vsDepot = Trim(sScan)
+                        If (API_EEP_bRechercheDepot(vsDepot, vsDepotLibelle)) Then
+                            RES_bSaisieDepot = True
+                        End If
+
+                    End If
+                Else
+                    bFinSaisie = True
+                End If
+            Else
+                WRL_GestionErreurPDT(iRes, "RES_bSaisieDepot")
+            End If
+
+        End While
+
+    End Function
+
+    'Affichage du titre pour saisie du dépôt
+    Private Sub RES_AffichageSaisieDEPOT(ByVal vsDepot As String)
+        With go_IO
+            .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
+            .RFPrint(0, 2, CHR_sCentrer("DEPOT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+        End With
+    End Sub
+
 
 End Module

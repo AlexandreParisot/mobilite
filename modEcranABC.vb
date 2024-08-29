@@ -23,116 +23,122 @@ Module modEcranABC
         Dim sTypeEmplacementDeFin As String = ""
         Dim sNouveauLot As String = ""
         Dim sQuantiteDejaAmenee As String = "0"
+        Dim sDepot As String = ""
+        Dim sDepotLibelle As String = ""
 
 
         msTitre = vsTitre
 
-        If ABC_bSaisieEmplacementDeDebut(sEmplacementDeDebut) Then
+        If ABC_bSaisieDepot(sDepot, sDepotLibelle) Then
 
-            While Not bFinSaisie
+            If ABC_bSaisieEmplacementDeDebut(sDepot, sEmplacementDeDebut) Then
 
-                sEAN128Saisi = ""
-                ABC_bChoixScanOuSaisieEAN128(sEmplacementDeDebut, sArticle, sQuantiteDejaAmenee, sEAN128Saisi, bFinSaisie)
+                While Not bFinSaisie
 
-                sArticle = ""
-                sLot = ""
-                sQuantite = ""
-                sQuantiteDejaAmenee = "0"
-                If (Not bFinSaisie) Then
+                    sEAN128Saisi = ""
+                    ABC_bChoixScanOuSaisieEAN128(sDepot, sEmplacementDeDebut, sArticle, sQuantiteDejaAmenee, sEAN128Saisi, bFinSaisie)
+
+                    sArticle = ""
+                    sLot = ""
+                    sQuantite = ""
+                    sQuantiteDejaAmenee = "0"
+                    If (Not bFinSaisie) Then
+
+                        ' ====================
+                        'Le CAB a été scanné ou saisi
+                        If (sEAN128Saisi <> "") Then
+                            If (CHR_bRecupInfoEAN128(sEAN128Saisi, sNumOrdre, sArticle, sLot, sQuantite)) Then
+
+                                If (API_ABC_bControleArticleLot(sNumOrdre, sArticle, sLot)) Then
+
+                                    If (API_ABC_bControleQuantiteArticleLot(sArticle, sLot, sQuantite, sDepot, sEmplacementDeDebut, sStatutIDStock, sQuantiteAffectee, sDatePeremption)) Then
+
+                                        bSuiteTraitementOK = True
+
+                                    End If
+
+                                End If
+
+                            End If
+
+                        Else
+                            ' ====================
+                            'Les éléments du CAB doivent être saisis Article + Lot
+                            sArticle = ""
+                            sLot = ""
+                            sQuantite = ""
+                            If (ABC_bSaisieArticle(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, bFinSaisie)) Then
+
+                                If (ABC_bSaisieLot(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, bFinSaisie)) Then
+
+                                    If (API_ABC_bControleQuantiteArticleLot(sArticle, sLot, "0", sDepot, sEmplacementDeDebut, sStatutIDStock, sQuantiteAffectee, sDatePeremption)) Then
+
+                                        bSuiteTraitementOK = True
+
+                                    End If
+
+                                End If
+
+                            End If
+
+
+                        End If
+                    End If
+
 
                     ' ====================
-                    'Le CAB a été scanné ou saisi
-                    If (sEAN128Saisi <> "") Then
-                        If (CHR_bRecupInfoEAN128(sEAN128Saisi, sNumOrdre, sArticle, sLot, sQuantite)) Then
+                    'Suite du traitement
+                    If (Not bFinSaisie And bSuiteTraitementOK = True) Then
+                        'A ce stade on a recueilli les info Article/Lot (et la quantité si on a scannné le CAB) et on les a vérifié
 
-                            If (API_ABC_bControleArticleLot(sNumOrdre, sArticle, sLot)) Then
+                        If (sStatutIDStock = "2") Then
 
-                                If (API_ABC_bControleQuantiteArticleLot(sArticle, sLot, sQuantite, sEmplacementDeDebut, sStatutIDStock, sQuantiteAffectee, sDatePeremption)) Then
+                            API_ABC_bControleDateLot(sDepot, sArticle, sLot, sStatutIDStock, sDatePeremption)
 
-                                    bSuiteTraitementOK = True
+                            If (ABC_bSaisieQuantite(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, sQuantite, sStatutIDStock, sQuantiteAffectee, sDatePeremption, bFinSaisie)) Then
+
+                                If (ABC_bSaisieEmplacementDeFin(sDepot, sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, sQuantite, sEmplacementDeFin, sTypeEmplacementDeFin, bFinSaisie)) Then
+
+                                    API_bRecupDateHeure(sDateCourante, sHeureCourante)
+
+                                    If (sTypeEmplacementDeFin = gTab_Configuration.sSLPT_Bord_De_Chaine_Normal) Then
+
+                                        sNouveauLot = Trim(sDateCourante) & Trim(sHeureCourante)
+                                        API_ABC_bReclassIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
+                                        sLot = sNouveauLot
+
+                                    ElseIf (sTypeEmplacementDeFin = gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
+
+                                        sNouveauLot = Trim(sDateCourante)
+                                        API_ABC_bReclassIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
+                                        sLot = sNouveauLot
+
+                                    End If
+
+                                    If (API_ABC_bTransfertIdStock(sDepot, sEmplacementDeDebut, sArticle, sLot, sQuantite, sEmplacementDeFin)) Then
+                                        API_ABC_bGestionQuantiteCumulee(sDepot, sArticle, sQuantite, sQuantiteDejaAmenee)
+                                    End If
 
                                 End If
 
                             End If
 
+                        Else
+                            MSG_AfficheErreur(giERR_ID_STOCK_STATUT_INVALIDE, sStatutIDStock, "2")
                         End If
-
-                    Else
-                        ' ====================
-                        'Les éléments du CAB doivent être saisis Article + Lot
-                        sArticle = ""
-                        sLot = ""
-                        sQuantite = ""
-                        If (ABC_bSaisieArticle(sEmplacementDeDebut, sArticle, sArticleLibelle, bFinSaisie)) Then
-
-                            If (ABC_bSaisieLot(sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, bFinSaisie)) Then
-
-                                If (API_ABC_bControleQuantiteArticleLot(sArticle, sLot, "0", sEmplacementDeDebut, sStatutIDStock, sQuantiteAffectee, sDatePeremption)) Then
-
-                                    bSuiteTraitementOK = True
-
-                                End If
-
-                            End If
-
-                        End If
-
 
                     End If
-                End If
 
+                End While
 
-                ' ====================
-                'Suite du traitement
-                If (Not bFinSaisie And bSuiteTraitementOK = True) Then
-                    'A ce stade on a recueilli les info Article/Lot (et la quantité si on a scannné le CAB) et on les a vérifié
-
-                    If (sStatutIDStock = "2") Then
-
-                        API_ABC_bControleDateLot(sArticle, sLot, sStatutIDStock, sDatePeremption)
-
-                        If (ABC_bSaisieQuantite(sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, sQuantite, sStatutIDStock, sQuantiteAffectee, sDatePeremption, bFinSaisie)) Then
-
-                            If (ABC_bSaisieEmplacementDeFin(sEmplacementDeDebut, sArticle, sArticleLibelle, sLot, sNumOrdre, sQuantite, sEmplacementDeFin, sTypeEmplacementDeFin, bFinSaisie)) Then
-
-                                API_bRecupDateHeure(sDateCourante, sHeureCourante)
-
-                                If (sTypeEmplacementDeFin = gTab_Configuration.sSLPT_Bord_De_Chaine_Normal) Then
-
-                                    sNouveauLot = Trim(sDateCourante) & Trim(sHeureCourante)
-                                    API_ABC_bReclassIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
-                                    sLot = sNouveauLot
-
-                                ElseIf (sTypeEmplacementDeFin = gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
-
-                                    sNouveauLot = Trim(sDateCourante)
-                                    API_ABC_bReclassIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sNouveauLot, sStatutIDStock)
-                                    sLot = sNouveauLot
-
-                                End If
-
-                                If (API_ABC_bTransfertIdStock(sEmplacementDeDebut, sArticle, sLot, sQuantite, sEmplacementDeFin)) Then
-                                    API_ABC_bGestionQuantiteCumulee(sArticle, sQuantite, sQuantiteDejaAmenee)
-                                End If
-
-                            End If
-
-                        End If
-
-                    Else
-                        MSG_AfficheErreur(giERR_ID_STOCK_STATUT_INVALIDE, sStatutIDStock, "2")
-                    End If
-
-                End If
-
-            End While
+            End If
 
         End If
 
     End Sub
 
     'Saisie de l'emplacement
-    Private Function ABC_bSaisieEmplacementDeDebut(ByRef vsEmplacementDeDebut As String) As Boolean
+    Private Function ABC_bSaisieEmplacementDeDebut(ByVal vsDepot As String, ByRef vsEmplacementDeDebut As String) As Boolean
 
         ABC_bSaisieEmplacementDeDebut = False
         Dim bFinSaisie As Boolean = False
@@ -142,10 +148,10 @@ Module modEcranABC
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieEmplacementDeDebut And Not gbErreurCommunication And Not bFinSaisie
 
             'Affichage
-            ABC_AffichageSaisieEMPLACEMENTdeDEBUT()
+            ABC_AffichageSaisieEMPLACEMENTdeDEBUT(vsDepot)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 3, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 5, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -154,7 +160,7 @@ Module modEcranABC
                     Else
 
                         vsEmplacementDeDebut = Trim(sScan)
-                        If (API_ABC_bRechercheEmplacement(vsEmplacementDeDebut)) Then
+                        If (API_ABC_bRechercheEmplacement(vsDepot, vsEmplacementDeDebut)) Then
                             ABC_bSaisieEmplacementDeDebut = True
                         End If
 
@@ -171,7 +177,7 @@ Module modEcranABC
     End Function
 
     'Choix, soit Scan ou Saisie du code EAN128
-    Private Function ABC_bChoixScanOuSaisieEAN128(ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsQuantiteDejaAmenee As String, ByRef vsEAN128Saisi As String, ByRef vbFinSaisie As Boolean) As Boolean
+    Private Function ABC_bChoixScanOuSaisieEAN128(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsArticle As String, ByVal vsQuantiteDejaAmenee As String, ByRef vsEAN128Saisi As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         ABC_bChoixScanOuSaisieEAN128 = False
         Dim sScan As String = ""
@@ -181,10 +187,10 @@ Module modEcranABC
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bChoixScanOuSaisieEAN128 And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            ABC_AffichageChoix(vsEmplacement, vsArticle, vsQuantiteDejaAmenee)
+            ABC_AffichageChoix(vsDepot, vsEmplacement, vsArticle, vsQuantiteDejaAmenee)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 70, CHR_nCentrer(70), 6, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_SAISIE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 70, CHR_nCentrer(70), 8, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT_SAISIE, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -209,7 +215,7 @@ Module modEcranABC
     End Function
 
     'Saisie de l'article
-    Private Function ABC_bSaisieArticle(ByVal vsEmplacementDeDebut As String, ByRef vsArticle As String, ByRef vsArticleLibelle As String, ByRef vbFinSaisie As Boolean) As Boolean
+    Private Function ABC_bSaisieArticle(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByRef vsArticle As String, ByRef vsArticleLibelle As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         ABC_bSaisieArticle = False
         Dim sScan As String = ""
@@ -218,10 +224,10 @@ Module modEcranABC
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieArticle And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            ABC_AffichageSaisieARTICLE(vsEmplacementDeDebut)
+            ABC_AffichageSaisieARTICLE(vsDepot, vsEmplacementDeDebut)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 15, CHR_nCentrer(15), 4, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 15, CHR_nCentrer(15), 6, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -247,7 +253,7 @@ Module modEcranABC
     End Function
 
     'Saisie du lot
-    Private Function ABC_bSaisieLot(ByVal vsEmplacementdeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByRef vsLot As String, ByRef vsNumOrdre As String, ByRef vbFinSaisie As Boolean) As Boolean
+    Private Function ABC_bSaisieLot(ByVal vsDepot As String, ByVal vsEmplacementdeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByRef vsLot As String, ByRef vsNumOrdre As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         ABC_bSaisieLot = False
         Dim sScan As String = ""
@@ -258,10 +264,10 @@ Module modEcranABC
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieLot And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            ABC_AffichageSaisieLOT(vsEmplacementdeDebut, vsArticle, vsArticleLibelle)
+            ABC_AffichageSaisieLOT(vsDepot, vsEmplacementdeDebut, vsArticle, vsArticleLibelle)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 20, CHR_nCentrer(20), 6, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 20, CHR_nCentrer(20), 9, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -287,7 +293,7 @@ Module modEcranABC
     End Function
 
     'Saisie de la quantité
-    Private Function ABC_bSaisieQuantite(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsNumOrdre As String,
+    Private Function ABC_bSaisieQuantite(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsNumOrdre As String,
                                          ByRef vsQuantite As String, ByRef vsStatutIdStock As String, ByRef vsQuantiteAffectee As String, ByRef vsDatePeremption As String,
                                          ByRef vbFinSaisie As Boolean) As Boolean
 
@@ -301,15 +307,15 @@ Module modEcranABC
         vsQuantiteAffectee = ""
         vsDatePeremption = ""
 
-        API_ABC_bGestionQuantiteCumulee(vsArticle, "0", sQuantiteDejaAmenee)
+        API_ABC_bGestionQuantiteCumulee(vsDepot, vsArticle, "0", sQuantiteDejaAmenee)
 
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieQuantite And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            ABC_AffichageSaisieQUANTITE(vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, sQuantiteDejaAmenee)
+            ABC_AffichageSaisieQUANTITE(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, sQuantiteDejaAmenee)
 
             'Demande de saisie
-            sScan = go_IO.RFInput(vsQuantite, 10, CHR_nCentrer(10), 8, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput(vsQuantite, 10, CHR_nCentrer(10), 11, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -320,7 +326,7 @@ Module modEcranABC
                             nQuantite = (CHR_TransformeSeparateurPourNumerique(Trim(sScan)))
                             If (nQuantite <> 0) Then
                                 vsQuantite = Trim(sScan)
-                                If (API_ABC_bControleQuantiteArticleLot(vsArticle, vsLot, vsQuantite, vsEmplacementDeDebut, vsStatutIdStock, vsQuantiteAffectee, vsDatePeremption)) Then
+                                If (API_ABC_bControleQuantiteArticleLot(vsArticle, vsLot, vsQuantite, vsDepot, vsEmplacementDeDebut, vsStatutIdStock, vsQuantiteAffectee, vsDatePeremption)) Then
                                     ABC_bSaisieQuantite = True
                                 End If
                             Else
@@ -344,7 +350,7 @@ Module modEcranABC
     End Function
 
     'Saisie de l'emplacement de fin
-    Private Function ABC_bSaisieEmplacementDeFin(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsNumOrdre As String,
+    Private Function ABC_bSaisieEmplacementDeFin(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsNumOrdre As String,
                                                  ByVal vsQuantite As String, ByRef vsEmplacementDeFin As String, ByRef vsTypeEmplacementDeFin As String, ByRef vbFinSaisie As Boolean) As Boolean
 
         Dim sScan As String = ""
@@ -357,10 +363,10 @@ Module modEcranABC
         While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieEmplacementDeFin And Not gbErreurCommunication And Not vbFinSaisie
 
             'Affichage
-            ABC_AffichageSaisieEMPLACEMENTdeFIN(vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsQuantite)
+            ABC_AffichageSaisieEMPLACEMENTdeFIN(vsDepot, vsEmplacementDeDebut, vsArticle, vsArticleLibelle, vsLot, vsQuantite)
 
             'Demande de saisie
-            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 8, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            sScan = go_IO.RFInput("", 10, CHR_nCentrer(10), 11, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
             iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
             If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
                 If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
@@ -369,7 +375,7 @@ Module modEcranABC
                     Else
 
                         vsEmplacementDeFin = Trim(sScan)
-                        If (API_ABC_bRechercheEmplacement(vsEmplacementDeFin, vsTypeEmplacementDeFin)) Then
+                        If (API_ABC_bRechercheEmplacement(vsDepot, vsEmplacementDeFin, vsTypeEmplacementDeFin)) Then
                             If (vsTypeEmplacementDeFin <> gTab_Configuration.sSLPT_Bord_De_Chaine_Normal And vsTypeEmplacementDeFin <> gTab_Configuration.sSLPT_Bord_De_Chaine_Bib) Then
                                 MSG_AfficheErreur(giERR_TYPE_EMPLACEMENT_INVALIDE)
                             Else
@@ -391,80 +397,138 @@ Module modEcranABC
     End Function
 
     'Affichage du titre pour saisie de l'Emplacement de début
-    Private Sub ABC_AffichageSaisieEMPLACEMENTdeDEBUT()
+    Private Sub ABC_AffichageSaisieEMPLACEMENTdeDEBUT(ByVal vsDepot As String)
         With go_IO
+
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 2, CHR_sCentrer("EMPLACEMENT DEBUT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "EMPL. : ", WirelessStudioOle.RFIOConstants.WLNORMAL)
+
+            '.RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
+            '.RFPrint(0, 2, CHR_sCentrer("EMPLACEMENT DEBUT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage de l'écran choix de la saisie (Scan CAB ou saisie manuelle)
-    Private Sub ABC_AffichageChoix(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsQuantiteDejaAmenee As String)
+    Private Sub ABC_AffichageChoix(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsQuantiteDejaAmenee As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART.  : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, "QTE   : " & vsQuantiteDejaAmenee, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, CHR_sCentrer("CAB PALETTE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 1, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 4, "ART.  : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "QTE   : " & vsQuantiteDejaAmenee, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 7, CHR_sCentrer("CAB PALETTE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage du titre pour saisie de l'article
-    Private Sub ABC_AffichageSaisieARTICLE(ByVal vsEmplacementDeDebut As String)
+    Private Sub ABC_AffichageSaisieARTICLE(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, CHR_sCentrer("ARTICLE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, CHR_sCentrer("ARTICLE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage du titre pour saisie du lot
-    Private Sub ABC_AffichageSaisieLOT(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String)
+    Private Sub ABC_AffichageSaisieLOT(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, CHR_sCentrer("LOT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 8, CHR_sCentrer("LOT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage du titre pour saisie de la quantité
-    Private Sub ABC_AffichageSaisieQUANTITE(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantiteDejaAmenee As String)
+    Private Sub ABC_AffichageSaisieQUANTITE(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantiteDejaAmenee As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, "QTE AMENEE : " & vsQuantiteDejaAmenee, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 7, CHR_sCentrer("QUANTITE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 7, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 8, "QTE AMENEE : " & vsQuantiteDejaAmenee, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 10, CHR_sCentrer("QUANTITE"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
 
     'Affichage du titre pour indiquer qu'un lot plus ancien existe
-    Public Sub ABC_AffichageLotPlusAncien(ByVal vsEmplacement As String, ByVal vsLot As String)
+    Public Sub ABC_AffichageLotPlusAncien(ByVal vsDepot As String, ByVal vsEmplacement As String, ByVal vsLot As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 2, "Le lot ci-dessous est plus ancien", WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "EMPL. : " & vsEmplacement, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "Le lot ci-dessous est plus ancien", WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "EMPL. : " & vsEmplacement, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
 
             .GetEventEx(gCST_sFICHIER_BOUTONS_OK)
         End With
     End Sub
 
     'Affichage du titre pour saisie de l'Emplacement de fin
-    Private Sub ABC_AffichageSaisieEMPLACEMENTdeFIN(ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantite As String)
+    Private Sub ABC_AffichageSaisieEMPLACEMENTdeFIN(ByVal vsDepot As String, ByVal vsEmplacementDeDebut As String, ByVal vsArticle As String, ByVal vsArticleLibelle As String, ByVal vsLot As String, ByVal vsQuantite As String)
         With go_IO
             .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
-            .RFPrint(0, 1, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 2, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 3, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 4, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 5, "QTE : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
-            .RFPrint(0, 7, CHR_sCentrer("EMPLACEMENT FIN"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 2, "DEPOT : " & vsDepot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 3, "EMPL. : " & vsEmplacementDeDebut, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 5, "ART. : " & vsArticle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 6, vsArticleLibelle, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 7, "LOT : " & vsLot, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 8, "QTE : " & vsQuantite, WirelessStudioOle.RFIOConstants.WLNORMAL)
+            .RFPrint(0, 10, CHR_sCentrer("EMPLACEMENT FIN"), WirelessStudioOle.RFIOConstants.WLNORMAL)
         End With
     End Sub
+
+    Private Function ABC_bSaisieDepot(ByRef vsDepot As String, ByRef vsDepotLibelle As String) As Boolean
+
+        ABC_bSaisieDepot = False
+        Dim bFinSaisie As Boolean = False
+        Dim sScan As String = ""
+        Dim iRes As Integer = 0
+
+        While sScan <> Chr(gCST_TOUCHE_ECHAP) And Not ABC_bSaisieDepot And Not gbErreurCommunication And Not bFinSaisie
+
+            'Affichage
+            ABC_AffichageSaisieDEPOT(vsDepot)
+
+            'Demande de saisie
+            sScan = go_IO.RFInput(gTab_Configuration.sDepot, 3, CHR_nCentrer(3), 4, gCST_sFICHIER_CODE_BARRE & "|" & gCST_sFICHIER_BOUTONS_OK_CLR_QUIT, WirelessStudioOle.RFIOConstants.WLKEEPKEYSTT, WirelessStudioOle.RFIOConstants.WLTOUPPER + WirelessStudioOle.RFIOConstants.WLNO_RETURN_BKSP + WirelessStudioOle.RFIOConstants.WLFORCE_ENTRY)
+            iRes = go_IO.RFGetLastError() ' Gestion de l'erreur
+            If iRes = WirelessStudioOle.RFErrorConstants.WLNOERROR Then
+                If sScan <> Chr(gCST_TOUCHE_ECHAP) Then
+                    If sScan = gCST_TOUCHE_QUITTER_F3 And go_IO.LastInputType = WirelessStudioOle.RFIOConstants.WLCOMMANDTYPE Then
+                        bFinSaisie = True
+                    Else
+
+                        vsDepot = Trim(sScan)
+                        If (API_EEP_bRechercheDepot(vsDepot, vsDepotLibelle)) Then
+                            ABC_bSaisieDepot = True
+                        End If
+
+                    End If
+                Else
+                    bFinSaisie = True
+                End If
+            Else
+                WRL_GestionErreurPDT(iRes, "ABC_bSaisieDepot")
+            End If
+
+        End While
+
+    End Function
+
+    'Affichage du titre pour saisie du dépôt
+    Private Sub ABC_AffichageSaisieDEPOT(ByVal vsDepot As String)
+        With go_IO
+            .RFPrint(0, 0, CHR_sCentrer(" " & msTitre & " ", "="), WirelessStudioOle.RFIOConstants.WLREVERSE + WirelessStudioOle.RFIOConstants.WLCLEAR)
+            .RFPrint(0, 2, CHR_sCentrer("DEPOT"), WirelessStudioOle.RFIOConstants.WLNORMAL)
+        End With
+    End Sub
+
 
 End Module
